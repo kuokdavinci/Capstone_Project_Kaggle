@@ -43,8 +43,7 @@ async function generateContentWithRetry(params: any, retries = 3, delay = 1000) 
     params.model,
     'gemini-2.5-flash',
     'gemini-2.5-flash-lite',
-    'gemini-2.0-flash',
-    'gemini-1.5-flash'
+    'gemini-2.0-flash'
   ])).filter(Boolean);
 
   for (const model of modelsToTry) {
