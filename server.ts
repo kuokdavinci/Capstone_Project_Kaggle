@@ -17,7 +17,7 @@ import { FieldMapping } from './src/types.js';
 dotenv.config();
 
 const app = express();
-const PORT = 3000;
+const PORT = process.env.PORT || 8080;
 
 // Enable large JSON and body payloads for CSV transfers
 app.use(express.json({ limit: '15mb' }));

@@ -20,7 +20,7 @@ WORKDIR /app
 
 # Đặt biến môi trường production
 ENV NODE_ENV=production
-ENV PORT=3000
+ENV PORT=8080
 
 # Copy các file package và cài đặt duy nhất dependencies production
 COPY package*.json ./
@@ -29,8 +29,8 @@ RUN npm ci --only=production
 # Copy các sản phẩm đã build từ stage builder
 COPY --from=builder /app/dist ./dist
 
-# Mở port 3000 để truy cập bên ngoài
-EXPOSE 3000
+# Mở port 8080 để truy cập bên ngoài
+EXPOSE 8080
 
 # Lệnh khởi chạy server (node dist/server.cjs)
 CMD ["npm", "start"]
