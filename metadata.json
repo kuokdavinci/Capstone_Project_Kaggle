@@ -1,6 +1,6 @@
 {
-  "name": "Agentic Reconciliation Workspace",
-  "description": "Hệ thống đối soát giao dịch tài chính tích hợp Agent AI hỗ trợ phân tích và xử lý sai lệch.",
+  "name": "ReconCopilot: Agentic Reconciliation Workspace",
+  "description": "AI-assisted transaction reconciliation workspace with deterministic matching logic, explicit workflow steps, and a real MCP tool surface.",
   "requestFramePermissions": [],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }

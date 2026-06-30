@@ -37,28 +37,12 @@ import {
   ChatMessage, 
   RunPhase 
 } from './types';
-
-// Hardcoded Golden Sample Data for Viet Nam Fintech Demo
-const SAMPLE_INTERNAL_FILENAME = 'internal_ledger_payos.csv';
-const SAMPLE_INTERNAL_CSV = `Transaction_ID,Amount,Status,Timestamp
-TXN_20260629_001,250000,SUCCESS,2026-06-29 10:01:00
-TXN_20260629_002,150000,SUCCESS,2026-06-29 10:05:22
-TXN_20260629_003,500000,SUCCESS,2026-06-29 10:12:15
-TXN_20260629_004,1200000,FAILED,2026-06-29 10:15:00
-TXN_20260629_005,85000,SUCCESS,2026-06-29 10:20:10
-TXN_20260629_006,300000,PENDING,2026-06-29 10:25:00
-TXN_20260629_007,950000,SUCCESS,2026-06-29 10:30:45
-TXN_20260629_008,120000,SUCCESS,2026-06-29 10:45:00`;
-
-const SAMPLE_PARTNER_FILENAME = 'partner_settlement_momo.csv';
-const SAMPLE_PARTNER_CSV = `Partner_Ref,Gross_Value,Payment_State,Settled_At
-TXN_20260629_001,250000,PAID,2026-06-29 10:02:15
-TXN_20260629_002,148500,PAID,2026-06-29 10:06:00
-TXN_20260629_003,500000,FAILED,2026-06-29 10:15:10
-TXN_20260629_004,1200000,FAILED,2026-06-29 10:15:30
-TXN_20260629_005,84150,PAID,2026-06-29 10:22:00
-TXN_20260629_007,950000,PAID,2026-06-29 10:32:00
-TXN_20260629_009,450000,PAID,2026-06-29 11:00:00`;
+import {
+  SAMPLE_INTERNAL_CSV,
+  SAMPLE_INTERNAL_FILENAME,
+  SAMPLE_PARTNER_CSV,
+  SAMPLE_PARTNER_FILENAME,
+} from './sampleData';
 
 export default function App() {
   // Phase & File upload state
@@ -204,7 +188,7 @@ export default function App() {
     handleInspectFiles(SAMPLE_INTERNAL_CSV, SAMPLE_INTERNAL_FILENAME, SAMPLE_PARTNER_CSV, SAMPLE_PARTNER_FILENAME);
   };
 
-  // 2. Propose field mapping based on schemas using Gemini
+  // 2. Propose field mapping based on schemas using OpenAI
   const triggerAIOptimalMapping = async (
     intSchema: FileSchema, 
     partSchema: FileSchema,
@@ -212,7 +196,7 @@ export default function App() {
     overridePartCsv?: string
   ) => {
     setIsSuggestingMapping(true);
-    addToolTrace('suggest_mapping_start', { intSchema, partSchema }, 'Sending schema profiles to Gemini AI...');
+    addToolTrace('suggest_mapping_start', { intSchema, partSchema }, 'Sending schema profiles to OpenAI for structured mapping...');
     
     try {
       const response = await fetch('/api/suggest-mapping', {
@@ -343,6 +327,7 @@ export default function App() {
 
     setIsReconciling(true);
     setReconciliationResult(null);
+    setMismatchAnalysis(null);
     setReconcileProgress(10);
     setCurrentPhase('RUN');
 
@@ -384,13 +369,10 @@ export default function App() {
         const botMsg: ChatMessage = {
           id: `reconcile_${Date.now()}`,
           sender: 'agent',
-          text: `🎉 **RECONCILIATION COMPLETE!**\n\nI have executed the deterministic financial matching engine:\n- **Total Transactions Collected:** ${data.summary.total}\n- **Fully Matched:** ${data.summary.matched} (${((data.summary.matched / data.summary.total) * 100).toFixed(1)}%)\n- **Amount Mismatch:** ${data.summary.amount_mismatch}\n- **Status Mismatch:** ${data.summary.status_mismatch}\n- **Missing in System (Only in Partner):** ${data.summary.missing_internal}\n- **Missing in Partner (Only in System):** ${data.summary.missing_partner}\n\n*I am now running AI Clustering to detect underlying financial root causes and anomalies. Review the ledger results on the side panel.*`,
+          text: `🎉 **RECONCILIATION COMPLETE!**\n\nI have executed the deterministic financial matching engine:\n- **Total Transactions Collected:** ${data.summary.total}\n- **Fully Matched:** ${data.summary.matched} (${((data.summary.matched / data.summary.total) * 100).toFixed(1)}%)\n- **Amount Mismatch:** ${data.summary.amount_mismatch}\n- **Status Mismatch:** ${data.summary.status_mismatch}\n- **Missing in System (Only in Partner):** ${data.summary.missing_internal}\n- **Missing in Partner (Only in System):** ${data.summary.missing_partner}\n\n*AI root-cause clustering is now on demand to keep demo traffic lighter and reduce rate-limit spikes. Review the ledger first, then trigger insight generation only when needed.*`,
           timestamp: new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })
         };
         setChatMessages(prev => [...prev, botMsg]);
-
-        // Auto trigger AI Mismatch Clustering & Assessment
-        triggerAIMismatchAnalysis(data);
       }, 500);
 
     } catch (err: any) {
@@ -401,10 +383,10 @@ export default function App() {
     }
   };
 
-  // 5. Analyze and Cluster Mismatches using Gemini
+  // 5. Analyze and cluster mismatches using OpenAI
   const triggerAIMismatchAnalysis = async (result: ReconciliationResult) => {
     setIsAnalyzingMismatches(true);
-    addToolTrace('analyze_mismatches_start', { resultId: result.resultId }, 'Sending mismatch records to Gemini for cluster analysis...');
+    addToolTrace('analyze_mismatches_start', { resultId: result.resultId }, 'Sending compact mismatch records to OpenAI for cluster analysis...');
 
     const mismatches = result.rows.filter(r => r.issue_flags.length > 0);
 
@@ -1354,14 +1336,23 @@ export default function App() {
                     <h2 className="text-base font-bold text-white flex items-center gap-1.5">
                       <Sparkles className="w-4 h-4 text-emerald-400" /> AI Mismatch Cluster & Root Cause Diagnostics
                     </h2>
-                    <p className="text-[11px] text-slate-400">ReconCopilot automatically clusters discrepancies, identifies repeating anomalies, and diagnoses potential root causes.</p>
+                    <p className="text-[11px] text-slate-400">ReconCopilot can cluster discrepancies on demand, keeping demo-time LLM traffic leaner and reducing rate-limit spikes.</p>
                   </div>
 
-                  {isAnalyzingMismatches && (
-                    <div className="flex items-center gap-1.5 text-xs text-emerald-400 font-mono">
-                      <RefreshCw className="w-3.5 h-3.5 animate-spin" /> Clustering anomalies...
-                    </div>
-                  )}
+                  <div className="flex items-center gap-3">
+                    {isAnalyzingMismatches && (
+                      <div className="flex items-center gap-1.5 text-xs text-emerald-400 font-mono">
+                        <RefreshCw className="w-3.5 h-3.5 animate-spin" /> Clustering anomalies...
+                      </div>
+                    )}
+                    <button
+                      onClick={() => reconciliationResult && triggerAIMismatchAnalysis(reconciliationResult)}
+                      disabled={isAnalyzingMismatches || !reconciliationResult || reconciliationResult.rows.every(r => r.issue_flags.length === 0)}
+                      className="px-3 py-1.5 bg-gradient-to-tr from-emerald-600/10 to-teal-400/10 hover:from-emerald-600/20 hover:to-teal-400/20 disabled:opacity-50 disabled:cursor-not-allowed text-emerald-300 rounded-xl border border-emerald-500/20 text-xs flex items-center gap-1.5 transition-all cursor-pointer"
+                    >
+                      <Sparkles className="w-3.5 h-3.5 text-emerald-400" /> Run AI Cluster Analysis
+                    </button>
+                  </div>
                 </div>
 
                 {mismatchAnalysis ? (
@@ -1407,7 +1398,7 @@ export default function App() {
                   </div>
                 ) : (
                   <div className="py-8 text-center text-xs text-slate-500 border border-dashed border-slate-800 rounded-xl bg-slate-950/20">
-                    {isAnalyzingMismatches ? 'AI is analyzing discrepancies and building root-cause clusters...' : 'No critical mismatches detected requiring root cause analysis.'}
+                    {isAnalyzingMismatches ? 'AI is analyzing discrepancies and building root-cause clusters...' : 'Run AI Cluster Analysis when you want root-cause insights for the current reconciliation result.'}
                   </div>
                 )}
               </div>
@@ -1783,7 +1774,13 @@ export default function App() {
                     </span>
                     <span className="text-[8px] bg-slate-800 text-slate-500 px-1.5 py-0.5 rounded font-mono">Developer Mode</span>
                   </div>
-                  <p className="text-[10px] text-slate-500 mb-3">Inspect background tool invocations (MCP) and live context handled by the AI server.</p>
+                  <p className="text-[10px] text-slate-500 mb-3">Inspect in-app activity logs and AI server context. The real MCP server is exposed separately at <code>/mcp</code> for tool-based integrations and smoke tests.</p>
+
+                  <div className="mb-3 rounded-lg border border-emerald-900/60 bg-emerald-950/20 p-2.5 text-[9px] text-emerald-200 font-mono">
+                    <div className="font-bold text-emerald-300 mb-1">Live MCP Surface</div>
+                    <div>Endpoint: <code>POST /mcp</code></div>
+                    <div>Tools: <code>load_sample_dataset</code>, <code>inspect_csv</code>, <code>validate_mapping</code>, <code>run_reconciliation</code></div>
+                  </div>
 
                   <div className="flex-1 overflow-y-auto space-y-2 pr-1 scrollbar-thin">
                     {toolTraces.length > 0 ? (

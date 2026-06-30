@@ -121,24 +121,23 @@ export function profileCSV(filename: string, rows: Record<string, string>[]): Fi
 // Normalize strings to float values safely
 export function parseAmount(s: string | null): number | null {
   if (s === null || s === undefined || s.trim() === '') return null;
-  // Remove currency signs (₫, $, €), commas (Vietnam thousand separators), and spaces
-  let clean = s.replace(/[^\d.-]/g, '');
-  // Handling of dot vs comma in European/Vietnamese currency formats:
-  // e.g., "1.250.000" should become "1250000"
-  // If there are multiple dots/commas or a final comma as decimal point:
-  if (clean.includes('.') && clean.includes(',')) {
-    // Standard format (e.g., 1,250.50) -> strip commas, keep dot
-    clean = clean.replace(/,/g, '');
-  } else if (s.includes(',') && !s.includes('.')) {
-    // Vietnamese/European format without decimals (e.g., 1.250.000 -> written as 1,250,000)
-    // Or with comma as decimal (e.g., 1250,50) -> if comma count is 1 and near the end, treat as decimal dot
-    const commaCount = (clean.match(/,/g) || []).length;
-    if (commaCount === 1 && clean.indexOf(',') >= clean.length - 3) {
-      clean = clean.replace(/,/g, '.');
+  const raw = s.trim().replace(/[^\d,.-]/g, '');
+  let clean = raw;
+
+  if (raw.includes(',') && raw.includes('.')) {
+    clean = raw.replace(/,/g, '');
+  } else if (raw.includes(',') && !raw.includes('.')) {
+    const commaCount = (raw.match(/,/g) || []).length;
+    const commaIndex = raw.lastIndexOf(',');
+    const digitsAfterComma = raw.length - commaIndex - 1;
+
+    if (commaCount === 1 && digitsAfterComma > 0 && digitsAfterComma <= 2) {
+      clean = raw.replace(',', '.');
     } else {
-      clean = clean.replace(/,/g, '');
+      clean = raw.replace(/,/g, '');
     }
   }
+
   const num = parseFloat(clean);
   return isNaN(num) ? null : num;
 }

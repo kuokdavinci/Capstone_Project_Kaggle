@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="540" viewBox="0 0 1200 540" fill="none">
+  <rect width="1200" height="540" fill="#0A1018"/>
+  <rect x="70" y="70" width="1060" height="400" rx="24" fill="#111C28" stroke="#23374A"/>
+  <text x="110" y="130" fill="#F4F7FB" font-family="Arial, sans-serif" font-size="30" font-weight="700">MCP Surface</text>
+  <text x="110" y="170" fill="#8AA2B7" font-family="Arial, sans-serif" font-size="18">Mounted on the same Express app at <tspan fill="#79E2B1">/mcp</tspan> and backed by the deterministic reconciliation service.</text>
+  <rect x="110" y="220" width="220" height="180" rx="18" fill="#17344A"/>
+  <text x="135" y="260" fill="#A9D6FF" font-family="Arial, sans-serif" font-size="22" font-weight="700">load_sample_dataset</text>
+  <text x="135" y="300" fill="#E8F1F8" font-family="Arial, sans-serif" font-size="18">Returns demo CSV payloads</text>
+  <rect x="370" y="220" width="220" height="180" rx="18" fill="#3C2B56"/>
+  <text x="395" y="260" fill="#E1C1FF" font-family="Arial, sans-serif" font-size="22" font-weight="700">inspect_csv</text>
+  <text x="395" y="300" fill="#E8F1F8" font-family="Arial, sans-serif" font-size="18">Profiles both ledgers</text>
+  <rect x="630" y="220" width="220" height="180" rx="18" fill="#224437"/>
+  <text x="655" y="260" fill="#8EF0B8" font-family="Arial, sans-serif" font-size="22" font-weight="700">validate_mapping</text>
+  <text x="655" y="300" fill="#E8F1F8" font-family="Arial, sans-serif" font-size="18">Checks canonical mapping</text>
+  <rect x="890" y="220" width="220" height="180" rx="18" fill="#4B341B"/>
+  <text x="915" y="260" fill="#FFD37A" font-family="Arial, sans-serif" font-size="22" font-weight="700">run_reconciliation</text>
+  <text x="915" y="300" fill="#E8F1F8" font-family="Arial, sans-serif" font-size="18">Returns deterministic summary</text>
+</svg>

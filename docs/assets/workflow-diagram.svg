@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="420" viewBox="0 0 1200 420" fill="none">
+  <rect width="1200" height="420" fill="#091019"/>
+  <text x="60" y="70" fill="#F3F7FB" font-family="Arial, sans-serif" font-size="32" font-weight="700">Agent Workflow</text>
+  <g font-family="Arial, sans-serif" font-size="18" fill="#D9E5EE">
+    <rect x="60" y="130" width="160" height="140" rx="18" fill="#17334A"/>
+    <text x="92" y="180">1. Inspect</text>
+    <text x="92" y="212">Schema profile</text>
+    <rect x="260" y="130" width="160" height="140" rx="18" fill="#3A2A54"/>
+    <text x="292" y="180">2. Suggest</text>
+    <text x="292" y="212">AI mapping</text>
+    <rect x="460" y="130" width="160" height="140" rx="18" fill="#204436"/>
+    <text x="492" y="180">3. Validate</text>
+    <text x="492" y="212">Preview issues</text>
+    <rect x="660" y="130" width="160" height="140" rx="18" fill="#4A341D"/>
+    <text x="692" y="180">4. Reconcile</text>
+    <text x="692" y="212">Deterministic</text>
+    <rect x="860" y="130" width="160" height="140" rx="18" fill="#4A2437"/>
+    <text x="892" y="180">5. Cluster</text>
+    <text x="892" y="212">AI analysis</text>
+    <rect x="1040" y="130" width="120" height="140" rx="18" fill="#213A55"/>
+    <text x="1062" y="180">6. MCP</text>
+    <text x="1057" y="212">Trusted</text>
+    <text x="1054" y="238">tools</text>
+  </g>
+  <g stroke="#77B0D9" stroke-width="4">
+    <path d="M220 200H260"/>
+    <path d="M420 200H460"/>
+    <path d="M620 200H660"/>
+    <path d="M820 200H860"/>
+    <path d="M1020 200H1040"/>
+  </g>
+  <text x="60" y="340" fill="#8CA4B6" font-family="Arial, sans-serif" font-size="18">Deterministic engine owns final counts. AI assists with semantic steps. MCP exposes trusted actions for external agents.</text>
+</svg>
