@@ -1,31 +1,37 @@
 # ReconCopilot: Agentic Reconciliation Workspace
 
-ReconCopilot is an AI-assisted workspace for finance operations teams that reconcile internal ledgers against partner settlement files. It combines deterministic reconciliation logic with explicit AI-assisted steps for schema mapping, mismatch clustering, and audit-friendly explanations.
+ReconCopilot is an AI-assisted workspace for finance operations teams that reconcile internal ledgers against partner settlement files. It keeps business-critical matching deterministic, then layers AI only where semantic reasoning helps: schema mapping, mismatch clustering, and analyst-friendly explanations.
 
-![Architecture diagram](docs/assets/architecture-diagram.svg)
+## Live Demo
+
+- Live app: https://capstone-project-kaggle-551626064921.asia-southeast3.run.app/
+- End-to-end demo video: https://youtu.be/9hlX9yKYTjs
+- Build/design workflow demo: https://youtu.be/PIyI1F_fjk0
 
 ## Why this project matters
 
-Manual reconciliation is slow, repetitive, and risky when data arrives from multiple payment partners with inconsistent schemas. ReconCopilot reduces that friction for:
+Manual reconciliation is slow, repetitive, and error-prone when internal ledgers and partner settlement exports use different schemas, timestamps, and status conventions. ReconCopilot targets:
 
 - Finance controllers reconciling daily transaction batches
 - Payment operations teams reviewing settlement discrepancies
-- Audit and support teams triaging mismatch clusters quickly
+- Audit and support teams triaging recurring mismatch patterns
 
-The product is intentionally **not just a chatbot**. The business-critical comparison logic remains deterministic, while AI is used only where probabilistic help adds value.
+This is intentionally not just a chatbot. Final counts and row classifications come from deterministic local logic, while AI assists with interpretation and workflow acceleration.
 
 ## What makes it an AI agent project
 
-ReconCopilot executes an explicit multi-step workflow:
+ReconCopilot executes an explicit workflow:
 
 1. Inspect two uploaded CSVs and profile their schemas
 2. Ask OpenAI to suggest canonical field mappings with structured output
 3. Validate the mapping before execution
 4. Run deterministic reconciliation
-5. Ask OpenAI to cluster mismatches and explain likely causes
-6. Expose the trusted reconciliation actions through a real MCP server
+5. Generate optional AI mismatch clustering and explanations on demand
+6. Expose trusted reconciliation actions through a real MCP server
 
-## Deterministic vs AI vs MCP
+## System overview
+
+### Deterministic vs AI vs MCP
 
 | Layer | Responsibility | Why it belongs there |
 | --- | --- | --- |
@@ -33,36 +39,71 @@ ReconCopilot executes an explicit multi-step workflow:
 | AI assistance | Mapping suggestions, mismatch clustering, analyst explanations | These steps benefit from semantic reasoning |
 | MCP tools | Standardized access to trusted business actions | Demonstrates explicit tool use and protocol-based integration |
 
+### Architecture
+
+The architecture is intentionally simple and portfolio-friendly:
+
+- React frontend for file intake, validation, review workflow, and analyst chat
+- Express backend for product APIs and MCP endpoint
+- Deterministic reconciliation engine in TypeScript
+- OpenAI Responses API for structured mapping, insight generation, and concise chat replies
+- Sample datasets, smoke scripts, and CI to keep the demo reproducible
+
+### Workflow
+
+The main product loop is:
+
+1. Intake internal ledger CSV and partner settlement CSV
+2. Profile schemas and sample values
+3. Generate AI mapping suggestion
+4. Validate mapping with preview rows
+5. Run deterministic reconciliation
+6. Review mismatch table
+7. Trigger AI cluster analysis only when needed
+8. Use chat for focused audit follow-up
+
+More detail:
+
+- [docs/architecture.md](docs/architecture.md)
+- [docs/agent-workflow.md](docs/agent-workflow.md)
+- [docs/evaluation.md](docs/evaluation.md)
+
 ## Real MCP usage
 
-This repository now exposes a real MCP endpoint at `/mcp` with four tools:
+This repository exposes a real MCP endpoint at `/mcp` with four tools:
 
 - `load_sample_dataset`
 - `inspect_csv`
 - `validate_mapping`
 - `run_reconciliation`
 
-The MCP layer wraps the same deterministic reconciliation engine used by the web app. A smoke test client is included in [`scripts/mcp-smoke.ts`](scripts/mcp-smoke.ts).
+The MCP layer wraps the same deterministic reconciliation engine used by the web app. A smoke test client is included in [scripts/mcp-smoke.ts](scripts/mcp-smoke.ts).
 
-![MCP surface](docs/assets/mcp-surface.svg)
+## Screenshots
 
-## Architecture
+### Intake and data loading
 
-![Workflow diagram](docs/assets/workflow-diagram.svg)
+![Intake workspace](screenshots/intake.png)
 
-High-level components:
+### AI-assisted mapping
 
-- React frontend for file intake, review workflow, results, and analyst chat
-- Express server for HTTP APIs and MCP endpoint
-- Deterministic reconciliation engine in TypeScript
-- OpenAI Responses API integration for schema mapping, mismatch analysis, and contextual chat
-- Sample datasets and tests for reproducible local evaluation
+![Mapping screen](screenshots/mapping.png)
 
-More detail:
+### Deterministic reconciliation results
 
-- [`docs/architecture.md`](docs/architecture.md)
-- [`docs/agent-workflow.md`](docs/agent-workflow.md)
-- [`docs/evaluation.md`](docs/evaluation.md)
+![Reconciliation results](screenshots/reconciliation.png)
+
+### AI mismatch clustering
+
+![AI insights](screenshots/AI_insights.png)
+
+### Agent activity and trace visibility
+
+![Agent traces](screenshots/agent_traces.png)
+
+### Exported reconciliation report
+
+![CSV report](screenshots/csv_report.png)
 
 ## Repository structure
 
@@ -75,9 +116,13 @@ src/
   sampleData.ts               Built-in demo dataset
 server.ts                     Express server + MCP mount
 tests/                        Deterministic engine tests
-scripts/mcp-smoke.ts          MCP smoke-test client
+scripts/
+  mcp-smoke.ts                MCP smoke-test client
+  openai-flow-smoke.ts        OpenAI end-to-end smoke
 sample-data/                  CSV files for demo and docs
 docs/                         Submission-oriented documentation
+screenshots/                  README/demo screenshots
+.github/workflows/            Backend CI and AI eval CI
 ```
 
 ## Quick start
@@ -114,14 +159,14 @@ npm run openai:flow-smoke
 
 ## CI
 
-GitHub Actions now includes two workflows:
+GitHub Actions includes two workflows:
 
-- `Backend CI`: runs install, typecheck, tests, build, and MCP smoke validation
-- `AI Eval CI`: runs the OpenAI-backed end-to-end smoke flow when `OPENAI_API_KEY` is configured in repository secrets
+- `Backend CI`: install, typecheck, deterministic tests, build, and MCP smoke validation
+- `AI Eval CI`: OpenAI-backed end-to-end smoke flow when `OPENAI_API_KEY` is configured in repository secrets
 
 For the AI eval workflow, add `OPENAI_API_KEY` in GitHub repository secrets before relying on the job as a required check.
 
-### Demo stability note
+## Demo stability note
 
 This repo was migrated from Gemini to OpenAI after repeated demo-time `429` and availability spikes on the old provider path. The current flow reduces request pressure by:
 
@@ -132,10 +177,10 @@ This repo was migrated from Gemini to OpenAI after repeated demo-time `429` and 
 
 ## Reproducible demo flow
 
-Use the built-in sample dataset or the files in [`sample-data/`](sample-data/):
+Use the built-in sample dataset or the files in [sample-data/](sample-data/):
 
-- [`sample-data/internal_ledger_payos.csv`](sample-data/internal_ledger_payos.csv)
-- [`sample-data/partner_settlement_momo.csv`](sample-data/partner_settlement_momo.csv)
+- [sample-data/internal_ledger_payos.csv](sample-data/internal_ledger_payos.csv)
+- [sample-data/partner_settlement_momo.csv](sample-data/partner_settlement_momo.csv)
 
 Suggested demo path:
 
@@ -144,7 +189,7 @@ Suggested demo path:
 3. Validate and run reconciliation
 4. Trigger mismatch clustering only when you want AI insight
 5. Open the activity log and explain the difference between app logs and MCP tools
-6. Run `npm run mcp:smoke` in a terminal to show MCP access to deterministic tools
+6. Run `npm run mcp:smoke` to show MCP access to deterministic tools
 7. Run `npm run openai:flow-smoke` to exercise the OpenAI-backed mapping, insight, and chat endpoints end to end
 
 ## Tests
@@ -159,10 +204,10 @@ Current automated coverage focuses on the deterministic core:
 
 The MCP smoke test verifies:
 
-- Server boots successfully
+- server boots successfully
 - MCP tools are discoverable
-- Sample dataset is loaded through MCP
-- Reconciliation can be executed over MCP
+- sample dataset is loaded through MCP
+- reconciliation can be executed over MCP
 
 The OpenAI flow smoke test verifies:
 
@@ -179,14 +224,14 @@ The OpenAI flow smoke test verifies:
 - Deterministic logic is kept separate from LLM-generated narrative output
 - Reconciliation logic can run without trusting the model for final counts
 - Sample data is synthetic and safe for demos
-- See [`SECURITY.md`](SECURITY.md) for operational cautions
+- See [SECURITY.md](SECURITY.md) for operational cautions
 
 ## Limitations
 
 - The current MCP integration is intentionally basic and tool-focused, not a full multi-agent orchestration layer
 - The app accepts CSV text uploads in memory and is not optimized for large production batch processing
 - No persistent audit store or user authentication is implemented yet
-- Demo video and live-hosted demo link still need to be recorded/published before final Kaggle submission
+- AI insight quality depends on the uploaded ledger quality and model availability
 
 ## Future improvements
 
@@ -198,16 +243,18 @@ The OpenAI flow smoke test verifies:
 
 ## Submission assets
 
-- Architecture and workflow docs: [`docs/`](docs)
-- Demo script for recording: [`docs/demo-script.md`](docs/demo-script.md)
-- Security notes: [`SECURITY.md`](SECURITY.md)
-- Visual assets: [`docs/assets/`](docs/assets)
+- Live app: https://capstone-project-kaggle-551626064921.asia-southeast3.run.app/
+- End-to-end demo: https://youtu.be/9hlX9yKYTjs
+- Build/design workflow demo: https://youtu.be/PIyI1F_fjk0
+- Architecture and workflow docs: [docs/](docs)
+- Demo script for recording: [docs/demo-script.md](docs/demo-script.md)
+- Security notes: [SECURITY.md](SECURITY.md)
 
 ## Rubric coverage
 
 | Rubric area | How this repository addresses it |
 | --- | --- |
 | Innovation & impact | Solves a real finance operations problem with a clear user and workflow |
-| Technical quality | Modular deterministic engine, explicit AI boundaries, MCP tooling, tests, reproducible setup |
-| Communication | README, architecture docs, demo script, diagrams, sample data |
+| Technical quality | Modular deterministic engine, explicit AI boundaries, MCP tooling, tests, CI, reproducible setup |
+| Communication | README, architecture docs, workflow docs, screenshots, demo links, sample data |
 | Course concepts | AI agents, structured outputs, tool use, MCP, reasoning, safe separation of deterministic logic |
