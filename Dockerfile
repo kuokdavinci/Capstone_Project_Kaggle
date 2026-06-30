@@ -32,5 +32,5 @@ COPY --from=builder /app/dist ./dist
 # Mở port 8080 để truy cập bên ngoài
 EXPOSE 8080
 
-# Lệnh khởi chạy server (node dist/server.cjs)
+# Lệnh khởi chạy server production bundle
 CMD ["npm", "start"]
